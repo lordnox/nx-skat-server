@@ -3,14 +3,21 @@
 var express = require('express');
 var fs      = require('fs');
 
+var log     = require('debug')('skat-server');
+
+
 
 /**
  *  Define the sample application.
  */
-var SampleApp = function() {
+var SampleApp = function(_log) {
 
     //  Scope.
     var self = this;
+
+    var log = function() {
+        _log.apply(_log, arguments);
+    };
 
 
     /*  ================================================================  */
@@ -28,7 +35,7 @@ var SampleApp = function() {
         if (typeof self.ipaddress === "undefined") {
             //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
             //  allows us to run/test the app locally.
-            console.warn('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1');
+            log('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1');
             self.ipaddress = "127.0.0.1";
         };
     };
@@ -61,11 +68,11 @@ var SampleApp = function() {
      */
     self.terminator = function(sig){
         if (typeof sig === "string") {
-           console.log('%s: Received %s - terminating sample app ...',
-                       Date(Date.now()), sig);
+           log('%s: Received %s - terminating sample app ...',
+               Date(Date.now()), sig);
            process.exit(1);
         }
-        console.log('%s: Node server stopped.', Date(Date.now()) );
+        log('%s: Node server stopped.', Date(Date.now()) );
     };
 
 
@@ -141,8 +148,8 @@ var SampleApp = function() {
     self.start = function() {
         //  Start the app on the specific interface (and port).
         self.app.listen(self.port, self.ipaddress, function() {
-            console.log('%s: Node server started on %s:%d ...',
-                        Date(Date.now() ), self.ipaddress, self.port);
+            log('%s: Node server started on %s:%d ...',
+                Date(Date.now() ), self.ipaddress, self.port);
         });
     };
 
@@ -153,7 +160,7 @@ var SampleApp = function() {
 /**
  *  main():  Main code.
  */
-var zapp = new SampleApp();
+var zapp = new SampleApp(log);
 zapp.initialize();
 zapp.start();
 
