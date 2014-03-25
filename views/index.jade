@@ -1,0 +1,19 @@
+doctype
+
+html
+  head
+    title Hello
+
+  body
+    h1 nx-skat!
+
+    div.log
+
+      if logs.length
+        ul
+          each log in logs
+            li
+              h3= log
+
+      else
+        h2 No logs created yet

@@ -2,10 +2,9 @@
 //  OpenShift sample Node application
 var express = require('express');
 var fs      = require('fs');
+var util    = require('util');
 
 var log     = require('debug')('skat-server');
-
-
 
 /**
  *  Define the sample application.
@@ -16,6 +15,7 @@ var SampleApp = function(_log) {
     var self = this;
 
     var log = function() {
+        self.log.push(util.format.apply(null, arguments));
         _log.apply(_log, arguments);
     };
 
@@ -31,6 +31,7 @@ var SampleApp = function(_log) {
         //  Set the environment variables we need.
         self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
         self.port      = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+        self.log       = [];
 
         if (typeof self.ipaddress === "undefined") {
             //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
@@ -39,27 +40,6 @@ var SampleApp = function(_log) {
             self.ipaddress = "127.0.0.1";
         };
     };
-
-
-    /**
-     *  Populate the cache.
-     */
-    self.populateCache = function() {
-        if (typeof self.zcache === "undefined") {
-            self.zcache = { 'index.html': '' };
-        }
-
-        //  Local cache for static content.
-        self.zcache['index.html'] = fs.readFileSync('./index.html');
-    };
-
-
-    /**
-     *  Retrieve entry (content) from cache.
-     *  @param {string} key  Key identifying content to retrieve from cache.
-     */
-    self.cache_get = function(key) { return self.zcache[key]; };
-
 
     /**
      *  terminator === the termination handler
@@ -119,13 +99,14 @@ var SampleApp = function(_log) {
      *  the handlers.
      */
     self.initializeServer = function() {
-        self.createRoutes();
-        self.app = express.createServer();
+        var app = self.app = express();
 
-        //  Add handlers for the app (from the routes).
-        for (var r in self.routes) {
-            self.app.get(r, self.routes[r]);
-        }
+        app.engine('jade', require('jade').__express);
+        app.set('view engine', 'jade');
+
+        app.get('/', function(req, res) {
+            res.render('index', {logs: self.log});
+        });
     };
 
 
@@ -134,7 +115,6 @@ var SampleApp = function(_log) {
      */
     self.initialize = function() {
         self.setupVariables();
-        self.populateCache();
         self.setupTerminationHandlers();
 
         // Create the express server and routes.
