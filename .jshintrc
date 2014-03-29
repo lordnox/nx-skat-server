@@ -7,10 +7,10 @@
   "expr": true,
   "globals": {
     "require": false,
+    "global": false,
     "module": false,
     "process": false,
     "beforeEach": false,
-    "grunt": false,
     "inject": false,
     "should": false,
     "xdescribe": false,
